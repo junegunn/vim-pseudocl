@@ -1,0 +1,44 @@
+Execute (Setup):
+  function! OnChange(...)
+    call add(g:changes, a:000)
+  endfunction
+
+  function! OnUnknownKey(...)
+    call add(g:unknowns, a:000)
+  endfunction
+
+  let g:opts = {
+    \ 'on_change': function('OnChange'),
+    \ 'on_unknown_key': function('OnUnknownKey')
+    \ }
+
+Before:
+  let g:changes  = []
+  let g:unknowns = []
+After:
+  AssertEqual 5, len(g:changes)
+  AssertEqual ['a',   '',   1], g:changes[0]
+  AssertEqual ['ab',  'a',  2], g:changes[1]
+  AssertEqual ['abc', 'ab', 3], g:changes[2]
+  AssertEqual 3, len(g:unknowns)
+  AssertEqual [char2nr("\<C-X>"), 'ab',    2], g:unknowns[0]
+  AssertEqual [char2nr("\<C-Y>"), 'abcd',  4], g:unknowns[1]
+  AssertEqual [char2nr("\<C-Z>"), 'abcde', 5], g:unknowns[2]
+
+Do (Basic):
+  :let g:got = pseudocl#start(g:opts)\<cr>
+  ab
+  \<C-X>
+  cd
+  \<C-Y>
+  e
+  \<C-Z>
+  \<CR>
+
+Before:
+After:
+Execute (Cleanup):
+  unlet g:changes g:unknowns
+  delfunction OnChange
+  delfunction OnUnknownKey
+

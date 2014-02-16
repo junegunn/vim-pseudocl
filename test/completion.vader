@@ -1,0 +1,44 @@
+Execute (Setup):
+  let g:opts = {'words': ['apple', 'applejuice', 'appleinc']}
+
+Do (Tab):
+  :let g:got = pseudocl#start(g:opts)\<cr>
+  ap\<tab>\<cr>
+Execute:
+  AssertEqual 'apple', g:got
+
+Do (S-tab):
+  :let g:got = pseudocl#start(g:opts)\<cr>
+  ap\<s-tab>\<cr>
+Execute:
+  AssertEqual 'appleinc', g:got
+
+Do (Tab Tab):
+  :let g:got = pseudocl#start(g:opts)\<cr>
+  ap\<tab>\<tab>\<cr>
+Execute:
+  AssertEqual 'applejuice', g:got
+
+Do (Tab Tab S-Tab Tab):
+  :let g:got = pseudocl#start(g:opts)\<cr>
+  ap\<tab>\<tab>\<s-tab>\<tab>\<cr>
+Execute:
+  AssertEqual 'applejuice', g:got
+
+Do (Tab Tab Tab Tab):
+  :let g:got = pseudocl#start(g:opts)\<cr>
+  ap\<tab>\<tab>\<tab>\<tab>\<cr>
+Execute:
+  AssertEqual 'ap', g:got
+
+Do (Tab Tab Change S-Tab):
+  :let g:got = pseudocl#start(g:opts)\<cr>
+  ap\<tab>\<tab>
+  \<c-a>\<c-f>\<c-f>\<c-f>\<c-k>
+  lej\<s-tab>
+  \<cr>
+Execute:
+  AssertEqual 'applejuice', g:got
+
+Execute (Cleanup):
+  unlet g:opts

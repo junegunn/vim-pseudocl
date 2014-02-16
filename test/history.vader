@@ -1,0 +1,55 @@
+Execute (Setup):
+  let g:opts = {'history': ['apple', 'applejuice', 'appleinc']}
+
+Do (C-N):
+  :let g:got = pseudocl#start(g:opts)\<cr>
+  \<c-n>\<cr>
+Execute:
+  AssertEqual '', g:got
+
+Do (C-P):
+  :let g:got = pseudocl#start(g:opts)\<cr>
+  \<c-p>\<cr>
+Execute:
+  AssertEqual 'appleinc', g:got
+
+Do (C-P C-P):
+  :let g:got = pseudocl#start(g:opts)\<cr>
+  abc\<c-p>\<c-p>\<cr>
+Execute:
+  AssertEqual 'applejuice', g:got
+
+Do (C-P C-P C-P C-P):
+  :let g:got = pseudocl#start(g:opts)\<cr>
+  abc\<c-p>\<c-p>\<c-p>\<c-p>\<cr>
+Execute:
+  AssertEqual 'apple', g:got
+
+Do (C-P C-P C-P C-P C-N):
+  :let g:got = pseudocl#start(g:opts)\<cr>
+  abc\<c-p>\<c-p>\<c-p>\<c-p>\<c-n>\<cr>
+Execute:
+  AssertEqual 'applejuice', g:got
+
+Do (C-P C-P C-P C-P C-N Change C-P):
+  :let g:got = pseudocl#start(g:opts)\<cr>
+  abc\<c-p>\<c-p>\<c-p>\<c-p>\<c-n>
+  !!!
+  \<c-p>
+  \<cr>
+Execute:
+  AssertEqual 'appleinc', g:got
+
+Do (C-P C-P C-P C-P C-N Change C-P C-N):
+  :let g:got = pseudocl#start(g:opts)\<cr>
+  abc\<c-p>\<c-p>\<c-p>\<c-p>\<c-n>
+  !!!
+  \<c-p>
+  \<c-n>
+  \<cr>
+Execute:
+  AssertEqual 'applejuice!!!', g:got
+
+Execute (Cleanup):
+  unlet g:opts
+

@@ -1,0 +1,101 @@
+Do (Basic):
+  :let g:got = pseudocl#start({})\<cr>
+  abcde\<cr>
+Execute:
+  AssertEqual 'abcde', g:got
+
+Do (CTRL-A CTRL-D):
+  :let g:got = pseudocl#start({})\<cr>
+  abcde
+  \<c-a>\<c-d>
+  \<cr>
+Execute:
+  AssertEqual 'bcde', g:got
+
+Do (CTRL-A CTRL-D CTRL-F Right CTRL-H):
+  :let g:got = pseudocl#start({})\<cr>
+  abcde
+  \<c-a>\<c-d>
+  \<c-f>\<right>\<c-h>
+  \<cr>
+Execute:
+  AssertEqual 'bde', g:got
+
+Do (CTRL-A CTRL-D CTRL-F Right CTRL-H Left CTRL-E):
+  :let g:got = pseudocl#start({})\<cr>
+  abcde
+  \<c-a>\<c-d>
+  \<c-f>\<right>\<c-h>
+  \<left>가나다 
+  \<c-e> 다나가
+  \<cr>
+Execute:
+  AssertEqual '가나다 bde 다나가', g:got
+
+Do (CTRL-A CTRL-D CTRL-F Right CTRL-H Left CTRL-E CTRL-B CTRL-K):
+  :let g:got = pseudocl#start({})\<cr>
+  abcde
+  \<c-a>\<c-d>
+  \<c-f>\<right>\<c-h>
+  \<left>가나다 
+  \<c-e> 다나가
+  \<c-b>\<c-b>\<c-k>
+  \<cr>
+Execute:
+  AssertEqual '가나다 bde 다', g:got
+
+Do (Shift-left/right Del):
+  :let g:got = pseudocl#start({})\<cr>
+  가나다 abc 다나가
+  \<s-left>\<del>
+  \<s-left>\<s-left>\<right>\<bs>\<bs>
+  \<s-right>\<s-right>\<bs>
+  \<cr>
+Execute:
+  AssertEqual '나다 ab 나가', g:got
+
+Do (Home / End):
+  :let g:got = pseudocl#start({})\<cr>
+  가나다 abc 다나가
+  \<Home>\<Del>
+  \<End>\<Bs>
+  \<cr>
+Execute:
+  AssertEqual '나다 abc 다나', g:got
+
+Do (CTRL-R-(W/A/=/")):
+  iapple apple-juice
+  \<esc>
+  ^w
+  "ayiW
+  yiw
+  :let g:got = pseudocl#start({})\<cr>
+  \<c-r>\<c-w> 
+  \<c-r>\<c-a> 
+  \<c-r>" 
+  \<c-r>=1234\<cr> 
+  \<c-r>a
+  \<cr>
+Execute:
+  AssertEqual 'apple apple-juice apple 1234 apple-juice', g:got
+
+Do (CTRL-C):
+  :try\<cr>
+  call pseudocl#start({})\<cr>
+  catch 'exit'\<cr>
+    let g:got = 'exited'\<cr>
+  endtry\<cr>
+  abcde\<cr>
+Execute:
+  AssertEqual 'exited', g:got
+
+Do (ESC):
+  :try\<cr>
+  call pseudocl#start({})\<cr>
+  catch 'exit'\<cr>
+    let g:got = 'exited'\<cr>
+  endtry\<cr>
+  abcde\<esc>
+Execute:
+  AssertEqual 'exited', g:got
+

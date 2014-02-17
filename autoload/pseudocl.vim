@@ -28,10 +28,11 @@ function! pseudocl#nop(...)
 endfunction
 
 let s:default_opts = {
-  \ 'prompt':         ['None', ':'],
+  \ 'prompt':         ':',
   \ 'history':        [],
   \ 'words':          [],
   \ 'input':          '',
+  \ 'highlight':      'None',
   \ 'renderer':       function('pseudocl#render#echo'),
   \ 'on_change':      function('pseudocl#nop'),
   \ 'on_unknown_key': function('pseudocl#nop')

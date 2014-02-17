@@ -32,6 +32,7 @@ let s:EXIT     = 3
 hi PseudocLCursor term=inverse cterm=inverse gui=inverse
 
 function! pseudocl#render#loop(opts)
+  let s:highlight = a:opts.highlight
   try
     call s:hide_cursor()
     let shortmess = &shortmess
@@ -82,7 +83,7 @@ function! pseudocl#render#clear()
 endfunction
 
 function! s:echo_line(str, cursor)
-  echohl None
+  execute 'echohl '.s:highlight
   try
     if a:cursor < 0
       echon a:str
@@ -97,7 +98,7 @@ function! s:echo_line(str, cursor)
       let m = matchlist(strpart(a:str, a:cursor), '^\(.\)\(.*\)')
       echon m[1]
 
-      echohl None
+      execute 'echohl '.s:highlight
       echon m[2]
     endif
   finally
@@ -144,7 +145,9 @@ function! s:echo_prompt(prompt)
 endfunction
 
 function! s:prompt_in_str(str)
+  execute 'echohl '.s:highlight
   echon a:str
+  echohl None
 endfunction
 
 function! s:prompt_in_list(list)

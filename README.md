@@ -27,6 +27,7 @@ function.
 | -------------- | ------  | ---------------------- | ----------------------------------------------------------- |
 | prompt         | String  | `':'`                  | Command-line prompt in string                               |
 | prompt         | List    | `['None', ':']`        | Sequence of highlight group and string pairs                |
+| highlight      | String  | `None`                 | Highlight group for command-line                            |
 | input          | String  | `''`                   | Initial input string                                        |
 | on_change      | Funcref | `pseudocl#nop`         | Callback function invoked on change (new, old, cursor)      |
 | on_unknown_key | Funcref | `pseudocl#nop`         | Callback function invoked on unknown key (key, str, cursor) |

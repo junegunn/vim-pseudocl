@@ -344,7 +344,7 @@ function! s:getchar(str, cursor, words, history)
         let text = expand('<cWORD>')
       elseif reg == "="
         let text = eval(s:input('=', ''))
-      elseif reg =~ '[a-zA-Z0-9"]'
+      elseif reg =~ '[a-zA-Z0-9"/%#*+:.-]'
         let text = getreg(reg)
       end
       if !empty(text)

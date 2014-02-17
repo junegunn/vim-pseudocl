@@ -63,7 +63,7 @@ Do (Home / End):
 Execute:
   AssertEqual '나다 abc 다나', g:got
 
-Do (CTRL-R-(W/A/=/")):
+Do (CTRL-R-(W/A/=/"/%)):
   iapple apple-juice
   \<esc>
   ^w
@@ -74,10 +74,11 @@ Do (CTRL-R-(W/A/=/")):
   \<c-r>\<c-a> 
   \<c-r>" 
   \<c-r>=1234\<cr> 
-  \<c-r>a
+  \<c-r>a 
+  \<c-r>%
   \<cr>
 Execute:
-  AssertEqual 'apple apple-juice apple 1234 apple-juice', g:got
+  AssertEqual 'apple apple-juice apple 1234 apple-juice [Vader-workbench]', g:got
 
 Do (CTRL-V - char):
   :let g:got = pseudocl#start({})\<cr>

@@ -31,9 +31,21 @@ let s:EXIT     = 3
 
 hi PseudocLCursor term=inverse cterm=inverse gui=inverse
 
+if exists("*strwidth")
+  function! s:strwidth(str)
+    return strwidth(a:str)
+  endfunction
+else
+  function! s:strwidth(str)
+    return len(split(a:str, '\zs'))
+  endfunction
+endif
+
 function! pseudocl#render#loop(opts)
   let s:highlight = a:opts.highlight
+  let xy = [&ruler, &showcmd]
   try
+    set noruler noshowcmd
     call s:hide_cursor()
     let shortmess = &shortmess
     set shortmess+=T
@@ -68,13 +80,16 @@ function! pseudocl#render#loop(opts)
   finally
     call s:show_cursor()
     let &shortmess = shortmess
+    let [&ruler, &showcmd] = xy
   endtry
 endfunction
 
 function! pseudocl#render#echo(prompt, line, cursor)
-  call pseudocl#render#clear()
-  call s:echo_prompt(a:prompt)
-  call s:echo_line(a:line, a:cursor)
+  if getchar(1) == 0
+    call pseudocl#render#clear()
+    let plen = s:echo_prompt(a:prompt)
+    call s:echo_line(a:line, a:cursor, plen)
+  endif
 endfunction
 
 function! pseudocl#render#clear()
@@ -82,24 +97,84 @@ function! pseudocl#render#clear()
   echon ''
 endfunction
 
-function! s:echo_line(str, cursor)
-  execute 'echohl '.s:highlight
+function! s:strtrans(str)
+  return substitute(a:str, "\n", '^M', 'g')
+endfunction
+
+function! s:trim(str, margin, left)
+  let str = a:str
+  let mod = 0
+  let ww  = winwidth(winnr()) - a:margin - 2
+  let sw  = s:strwidth(str)
+  let pat = a:left ? '^.' : '.$'
+  while sw >= ww
+    let sw -= s:strwidth(matchstr(str, pat))
+    let str = substitute(str, pat, '', '')
+    let mod = 1
+  endwhile
+  if mod
+    let str = substitute(str, a:left ? '^..' : '..$', '', '')
+  endif
+  return [str, mod ? '..' : '', sw]
+endfunction
+
+function! s:trim_left(str, margin)
+  return s:trim(a:str, a:margin, 1)
+endfunction
+
+function! s:trim_right(str, margin)
+  return s:trim(a:str, a:margin, 0)
+endfunction
+
+function! s:echo_line(str, cursor, prompt_width)
   try
     if a:cursor < 0
-      echon a:str
+      let [str, ellipsis, _] = s:trim_left(s:strtrans(a:str), a:prompt_width + 2)
+      if !empty(ellipsis)
+        echohl NonText
+        echon ellipsis
+      endif
+
+      execute 'echohl '.s:highlight
+      echon str
     elseif a:cursor == len(a:str)
-      echon a:str
+      let [str, ellipsis, _] = s:trim_left(s:strtrans(a:str), a:prompt_width + 2)
+      if !empty(ellipsis)
+        echohl NonText
+        echon ellipsis
+      endif
+
+      execute 'echohl '.s:highlight
+      echon str
+
       echohl PseudoCLCursor
       echon ' '
     else
-      echon strpart(a:str, 0, a:cursor)
-
-      echohl PseudoCLCursor
+      let prefix = s:strtrans(strpart(a:str, 0, a:cursor))
       let m = matchlist(strpart(a:str, a:cursor), '^\(.\)\(.*\)')
-      echon m[1]
+      let cursor = s:strtrans(m[1])
+      let suffix = s:strtrans(m[2])
+
+      let [prefix, ellipsis, pwidth] = s:trim_left(prefix,  a:prompt_width + 1 + 2)
+
+      if !empty(ellipsis)
+        echohl NonText
+        echon ellipsis
+      endif
 
       execute 'echohl '.s:highlight
-      echon m[2]
+      echon prefix
+
+      echohl PseudoCLCursor
+      echon cursor
+
+      let [suffix, ellipsis, _] = s:trim_right(suffix, a:prompt_width + pwidth - 1 + 2)
+      execute 'echohl '.s:highlight
+      echon suffix
+      if !empty(ellipsis)
+        echohl NonText
+        echon ellipsis
+      endif
     endif
   finally
     echohl None
@@ -128,7 +203,6 @@ function! s:show_cursor()
   endif
 
   if exists('s:hi_cursor')
-    echom s:hi_cursor
     execute s:hi_cursor
   endif
 endfunction
@@ -136,29 +210,34 @@ endfunction
 function! s:echo_prompt(prompt)
   let type = type(a:prompt)
   if type == 1
-    call s:prompt_in_str(a:prompt)
+    let len = s:prompt_in_str(a:prompt)
   elseif type == 3
-    call s:prompt_in_list(a:prompt)
+    let len = s:prompt_in_list(a:prompt)
   else
     echoerr "Invalid type"
   endif
+  return len
 endfunction
 
 function! s:prompt_in_str(str)
   execute 'echohl '.s:highlight
   echon a:str
   echohl None
+  return s:strwidth(a:str)
 endfunction
 
 function! s:prompt_in_list(list)
   let list = copy(a:list)
+  let len = 0
   while !empty(list)
     let hl = remove(list, 0)
     let str = remove(list, 0)
     execute 'echohl ' . hl
     echon str
+    let len += s:strwidth(str)
   endwhile
   echohl None
+  return len
 endfunction
 
 function! s:input(prompt, default)

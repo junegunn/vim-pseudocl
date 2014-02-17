@@ -312,8 +312,12 @@ function! s:getchar(str, cursor, words, history)
       let cursor = len(substitute(strpart(str, 0, cursor), '.$', '', ''))
     elseif ch == "\<C-F>" || c == "\<Right>"
       let cursor += len(matchstr(strpart(str, cursor), '^.'))
-    elseif ch == "\<C-N>" || ch == "\<C-P>" || c == "\<Up>" || c == "\<Down>"
-      let s:history_idx = (ch == "\<C-N>" || c == "\<Down>") ?
+    elseif ch == "\<C-N>"    || ch == "\<C-P>"      ||
+         \ c  == "\<Up>"     || c  == "\<Down>"     ||
+         \ c  == "\<PageUp>" || c  == "\<PageDown>" ||
+         \ c  == "\<S-Up>"   || c  == "\<S-Down>"
+      let s:history_idx = (ch == "\<C-N>"    || c == "\<PageDown>" ||
+                          \ c == "\<S-Down>" || c == "\<Down>") ?
             \ min([s:history_idx + 1, len(a:history) - 1]) :
             \ max([s:history_idx - 1, 0])
       if s:history_idx < len(a:history)

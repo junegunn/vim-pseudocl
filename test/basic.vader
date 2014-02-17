@@ -87,6 +87,37 @@ Do (CTRL-V - char):
 Execute:
   AssertEqual "\<c-v>a", g:got
 
+Do (CTRL-U CTRL-Y CTRL-Y):
+  :let g:got = pseudocl#start({})\<cr>
+  가나다
+  \<c-u>
+  \<c-y>
+  \<c-y>
+  \<cr>
+Execute:
+  AssertEqual "가나다가나다", g:got
+
+Do (CTRL-K CTRL-Y CTRL-Y):
+  :let g:got = pseudocl#start({})\<cr>
+  가나다
+  \<left>\<left>
+  \<c-k>
+  \<c-y>
+  \<c-y>
+  \<cr>
+Execute:
+  AssertEqual "가나다나다", g:got
+
+Do (CTRL-W CTRL-Y CTRL-Y):
+  :let g:got = pseudocl#start({})\<cr>
+  가나다     라마바       
+  \<c-w>
+  \<c-y>
+  \<c-y>
+  \<cr>
+Execute:
+  AssertEqual "가나다     라마바       라마바       ", g:got
+
 Execute (try-catch block):
   function! TryPseudoCL()
     try

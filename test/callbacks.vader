@@ -22,7 +22,7 @@ After:
   AssertEqual ['abc', 'ab', 3], g:changes[2]
   AssertEqual 3, len(g:unknowns)
   AssertEqual [char2nr("\<C-X>"), 'ab',    2], g:unknowns[0]
-  AssertEqual [char2nr("\<C-Y>"), 'abcd',  4], g:unknowns[1]
+  AssertEqual [char2nr("\<C-O>"), 'abcd',  4], g:unknowns[1]
   AssertEqual [char2nr("\<C-Z>"), 'abcde', 5], g:unknowns[2]
 
 Do (Basic):
@@ -30,7 +30,7 @@ Do (Basic):
   ab
   \<C-X>
   cd
-  \<C-Y>
+  \<C-O>
   e
   \<C-Z>
   \<CR>

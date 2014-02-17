@@ -43,6 +43,7 @@ endif
 
 function! pseudocl#render#loop(opts)
   let s:highlight = a:opts.highlight
+  let s:yanked = ''
   let xy = [&ruler, &showcmd]
   try
     set noruler noshowcmd
@@ -281,10 +282,13 @@ function! s:getchar(str, cursor, words, history)
     elseif ch == "\<Return>"
       return [s:RETURN, cursor, str]
     elseif ch == "\<C-U>"
+      let s:yanked = strpart(str, 0, cursor)
       let str = strpart(str, cursor)
       let cursor = 0
     elseif ch == "\<C-W>"
-      let prefix = substitute(substitute(strpart(str, 0, cursor), '\s*$', '', ''), '\s*\S*$', '', '')
+      let ostr = strpart(str, 0, cursor)
+      let prefix = substitute(substitute(strpart(str, 0, cursor), '\s*$', '', ''), '\S*$', '', '')
+      let s:yanked = strpart(ostr, len(prefix))
       let str = prefix . strpart(str, cursor)
       let cursor = len(prefix)
     elseif ch == "\<C-D>" || c == "\<Del>"
@@ -292,7 +296,11 @@ function! s:getchar(str, cursor, words, history)
       let suffix = substitute(strpart(str, cursor), '^.', '', '')
       let str = prefix . suffix
     elseif ch == "\<C-K>"
+      let s:yanked = strpart(str, cursor)
       let str = strpart(str, 0, cursor)
+    elseif ch == "\<C-Y>"
+      let str = strpart(str, 0, cursor) . s:yanked . strpart(str, cursor)
+      let cursor += len(s:yanked)
     elseif ch == "\<C-H>" || c  == "\<BS>"
       if cursor == 0 && empty(str)
         return [s:EXIT, cursor, str]

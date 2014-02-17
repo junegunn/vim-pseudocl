@@ -212,12 +212,12 @@ function! s:getchar(str, cursor, words, history)
     elseif ch == "\<C-K>"
       let str = strpart(str, 0, cursor)
     elseif ch == "\<C-H>" || c  == "\<BS>"
-      let prefix = substitute(strpart(str, 0, cursor), '.$', '', '')
-      let str = prefix . strpart(str, cursor)
-      let cursor = len(prefix)
       if cursor == 0 && empty(str)
         return [s:EXIT, cursor, str]
       endif
+      let prefix = substitute(strpart(str, 0, cursor), '.$', '', '')
+      let str = prefix . strpart(str, cursor)
+      let cursor = len(prefix)
     elseif ch == "\<C-B>" || c == "\<Left>"
       let cursor = len(substitute(strpart(str, 0, cursor), '.$', '', ''))
     elseif ch == "\<C-F>" || c == "\<Right>"

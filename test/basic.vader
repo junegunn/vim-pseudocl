@@ -79,23 +79,43 @@ Do (CTRL-R-(W/A/=/")):
 Execute:
   AssertEqual 'apple apple-juice apple 1234 apple-juice', g:got
 
+Execute (try-catch block):
+  function! TryPseudoCL()
+    try
+      let g:got = pseudocl#start({})
+    catch 'exit'
+      let g:got = 'exited'
+    endtry
+  endfunction
+
 Do (CTRL-C):
-  :try\<cr>
-  call pseudocl#start({})\<cr>
-  catch 'exit'\<cr>
-    let g:got = 'exited'\<cr>
-  endtry\<cr>
-  abcde\<cr>
+  :call TryPseudoCL()\<cr>
+  abcde\<c-c>
+  \<cr>
 Execute:
   AssertEqual 'exited', g:got
 
 Do (ESC):
-  :try\<cr>
-  call pseudocl#start({})\<cr>
-  catch 'exit'\<cr>
-    let g:got = 'exited'\<cr>
-  endtry\<cr>
+  :call TryPseudoCL()\<cr>
   abcde\<esc>
+  \<cr>
 Execute:
   AssertEqual 'exited', g:got
+
+Do (Empty string):
+  :call TryPseudoCL()\<cr>
+  a\<bs>
+  \<cr>
+Execute:
+  AssertEqual '', g:got
+
+Do (Backspace to exit):
+  :call TryPseudoCL()\<cr>
+  a\<bs>\<bs>
+  \<cr>
+Execute:
+  AssertEqual 'exited', g:got
+
+Execute (Cleanup):
+  delfunction TryPseudoCL
 

@@ -79,6 +79,14 @@ Do (CTRL-R-(W/A/=/")):
 Execute:
   AssertEqual 'apple apple-juice apple 1234 apple-juice', g:got
 
+Do (CTRL-V - char):
+  :let g:got = pseudocl#start({})\<cr>
+  \<c-v>\<c-v>
+  \<c-v>a
+  \<cr>
+Execute:
+  AssertEqual "\<c-v>a", g:got
+
 Execute (try-catch block):
   function! TryPseudoCL()
     try

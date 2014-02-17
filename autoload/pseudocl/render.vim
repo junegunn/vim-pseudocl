@@ -264,7 +264,10 @@ function! s:getchar(str, cursor, words, history)
         let str = strpart(str, 0, cursor) . text . strpart(str, cursor)
         let cursor += len(text)
       endif
-    elseif ch =~ '[[:print:]]'
+    elseif ch == "\<C-V>" || ch =~ '[[:print:]]'
+      if ch == "\<C-V>"
+        let ch = nr2char(getchar())
+      endif
       let str = strpart(str, 0, cursor) . ch . strpart(str, cursor)
       let cursor += len(ch)
     else

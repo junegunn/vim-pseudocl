@@ -13,9 +13,9 @@ Do (C-P):
 Execute:
   AssertEqual 'appleinc', g:got
 
-Do (C-P C-P):
+Do (C-P Up):
   :let g:got = pseudocl#start(g:opts)\<cr>
-  abc\<c-p>\<c-p>\<cr>
+  abc\<c-p>\<up>\<cr>
 Execute:
   AssertEqual 'applejuice', g:got
 
@@ -40,12 +40,12 @@ Do (C-P C-P C-P C-P C-N Change C-P):
 Execute:
   AssertEqual 'appleinc', g:got
 
-Do (C-P C-P C-P C-P C-N Change C-P C-N):
+Do (C-P C-P C-P C-P C-N Change C-P Down):
   :let g:got = pseudocl#start(g:opts)\<cr>
   abc\<c-p>\<c-p>\<c-p>\<c-p>\<c-n>
   !!!
   \<c-p>
-  \<c-n>
+  \<down>
   \<cr>
 Execute:
   AssertEqual 'applejuice!!!', g:got

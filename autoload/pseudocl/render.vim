@@ -225,8 +225,8 @@ function! s:getchar(str, cursor, words, history)
       let cursor = len(substitute(strpart(str, 0, cursor), '.$', '', ''))
     elseif ch == "\<C-F>" || c == "\<Right>"
       let cursor += len(matchstr(strpart(str, cursor), '^.'))
-    elseif (ch == "\<C-N>" || ch == "\<C-P>" || ch == "\<Up>" || ch == "\<Down>")
-      let s:history_idx = (ch == "\<C-N>" || ch == "\<Up>") ?
+    elseif ch == "\<C-N>" || ch == "\<C-P>" || c == "\<Up>" || c == "\<Down>"
+      let s:history_idx = (ch == "\<C-N>" || c == "\<Down>") ?
             \ min([s:history_idx + 1, len(a:history) - 1]) :
             \ max([s:history_idx - 1, 0])
       if s:history_idx < len(a:history)

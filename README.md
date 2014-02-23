@@ -32,7 +32,7 @@ function.
 | on_change      | Funcref | `pseudocl#nop`         | Callback function invoked on change (new, old, cursor)      |
 | on_unknown_key | Funcref | `pseudocl#nop`         | Callback function invoked on unknown key (key, str, cursor) |
 | renderer       | Funcref | `pseudocl#render#echo` | Command-line renderer (prompt, line, cursor)                |
-| map            | Boolean | `0`                    | To use command-line maps or not                             |
+| map            | Boolean | `1`                    | To use command-line maps or not                             |
 | history        | List    | `[]`                   | Command-line history                                        |
 | words          | List    | `[]`                   | Words for tab completion                                    |
 

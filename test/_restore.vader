@@ -1,0 +1,12 @@
+Execute (Restore cmaps):
+  if exists('g:pseudocl')
+    for [key, arg] in items(g:pseudocl)
+      if arg.expr
+        execute "cnoremap <expr> ".key." ".arg.rhs
+      else
+        execute "cnoremap ".key." ".arg.rhs
+      endif
+    endfor
+    unlet g:pseudocl
+  endif
+

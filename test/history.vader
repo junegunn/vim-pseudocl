@@ -1,3 +1,5 @@
+Include: _clear.vader
+
 Execute (Setup):
   let g:opts = {'history': ['apple', 'applejuice', 'appleinc']}
 
@@ -53,3 +55,4 @@ Execute:
 Execute (Cleanup):
   unlet g:opts
 
+Include: _restore.vader

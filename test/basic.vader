@@ -1,3 +1,5 @@
+Include: _clear.vader
+
 Do (Basic):
   :let g:got = pseudocl#start({})\<cr>
   abcde\<cr>
@@ -159,3 +161,4 @@ Execute:
 Execute (Cleanup):
   delfunction TryPseudoCL
 
+Include: _restore.vader

@@ -1,0 +1,38 @@
+Include: _clear.vader
+
+Execute (Setup):
+  cnoremap abc ABC
+  cnoremap xyz XYZ
+  cnoremap xyy XYY
+  cnoremap xxx <cr>
+  cnoremap <expr> 123 1 + 2 + 3
+  nnoremap :: :let g:got = pseudocl#start({})<cr>
+  nnoremap ::: :let g:got = pseudocl#start({'map': 0})<cr>
+
+Execute (TODO Feedkeys doesn't work correctly in macros):
+  normal ::abcxxx
+  AssertEqual 'ABC', g:got
+  normal ::xyzxxx
+  AssertEqual 'XYZ', g:got
+  normal ::abcxyzxxx
+  AssertEqual 'ABCXYZ', g:got
+  normal ::xyyxxx
+  AssertEqual 'XYY', g:got
+  normal ::xyxxxx
+  AssertEqual 'xyx', g:got
+  normal ::123xxx
+  AssertEqual '6', g:got
+
+  execute "normal :::abcxyz\<cr>"
+  AssertEqual 'abcxyz', g:got
+
+Execute (Cleanup):
+  cunmap abc
+  cunmap xyz
+  cunmap xyy
+  cunmap xxx
+  cunmap 123
+  nunmap ::
+  nunmap :::
+
+Include: _restore.vader

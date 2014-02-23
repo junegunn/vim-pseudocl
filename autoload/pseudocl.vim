@@ -33,6 +33,7 @@ let s:default_opts = {
   \ 'words':          [],
   \ 'input':          '',
   \ 'highlight':      'None',
+  \ 'map':            1,
   \ 'renderer':       function('pseudocl#render#echo'),
   \ 'on_change':      function('pseudocl#nop'),
   \ 'on_unknown_key': function('pseudocl#nop')

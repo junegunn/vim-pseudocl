@@ -24,10 +24,11 @@
 let s:cpo_save = &cpo
 set cpo&vim
 
-let s:RETURN   = 0
-let s:CONTINUE = 1
-let s:UNKNOWN  = 2
-let s:EXIT     = 3
+let s:MAP      = -1
+let s:RETURN   = -2
+let s:CONTINUE = -3
+let s:UNKNOWN  = -4
+let s:EXIT     = -5
 
 hi PseudocLCursor term=inverse cterm=inverse gui=inverse
 
@@ -55,12 +56,15 @@ function! pseudocl#render#loop(opts)
     let history       = copy(a:opts.history)
     let s:matches     = []
     let s:history_idx = len(history)
+    let s:keystrokes  = []
+    let s:prev_time   = 0
+    let s:use_maps    = a:opts.map
     call add(history, old)
 
     while 1
       call a:opts.renderer(pseudocl#get_prompt(), old, a:opts.cursor)
       let [code, a:opts.cursor, new] =
-            \ s:getchar(old, a:opts.cursor, a:opts.words, history)
+            \ s:process_char(old, a:opts.cursor, a:opts.words, history)
 
       if code == s:CONTINUE
         if new != old
@@ -250,17 +254,104 @@ function! s:input(prompt, default)
   endtry
 endfunction
 
+function! s:evaluate_keyseq(seq)
+  return substitute(a:seq, '<[^\s>]\+>', '\=eval("\"\\".submatch(0)."\"")', 'g')
+endfunction
+
+function! s:evaluate_keymap(arg)
+  return s:evaluate_keyseq(a:arg.expr ? eval(a:arg.rhs) : a:arg.rhs)
+endfunction
+
+function! s:process_char(str, cursor, words, history)
+  let c = s:getchar()
+  if c == s:MAP
+    return [s:MAP, a:cursor, a:str]
+  else
+    return s:decode_char(c, a:str, a:cursor, a:words, a:history)
+  endif
+endfunction
+
+function! s:timed_getchar(time)
+  if a:time == 0
+    let c = getchar()
+    let ch = nr2char(c)
+    return empty(ch) ? c : ch
+  else
+    for _ in range(0, a:time, 10)
+      let c = getchar(0)
+      if !empty(c)
+        let ch = nr2char(c)
+        return empty(ch) ? c : ch
+      endif
+      sleep 10m
+    endfor
+    return ''
+  endif
+endfunction
+
+function! s:gettime()
+  let [s, us] = reltime()
+  return s * 1000 + us / 1000
+endfunction
+
+function! s:cancel_map()
+  let first = remove(s:keystrokes, 0)
+  call feedkeys(join(s:keystrokes, ''))
+  let s:prev_time = 0
+  let s:keystrokes = []
+  return first
+endfunction
+
+function! s:getchar()
+  let timeout = 0
+  while 1
+    let c = s:timed_getchar(timeout)
+    if !s:use_maps
+      return c
+    endif
+
+    call add(s:keystrokes, c)
+    let maparg = maparg(join(s:keystrokes, ''), 'c', 0, 1)
+
+    " FIXME For now, let's just assume that we don't have multiple mappings
+    " with the same prefix
+    " e.g.
+    "      cnoremap x X
+    "      cnoremap xy XY
+    "
+    "      In this case, xy should evaluate to XY, but this is not correctly
+    "      implemented since it doesn't seem possible to check at the time we
+    "      have 'x' if there is any mapping that starts with 'x'.
+    "
+    "      We could look through the output of 'cmap' command, but it's just
+    "      too hacky.
+    if !empty(maparg)
+      let s:keystrokes = []
+      let s:prev_time = 0
+      call feedkeys(s:evaluate_keymap(maparg))
+      return s:MAP
+    elseif !empty(mapcheck(join(s:keystrokes, ''), 'c'))
+      if s:prev_time == 0
+        let s:prev_time = s:gettime()
+      elseif s:gettime() - s:prev_time > timeout
+        return s:cancel_map()
+      endif
+      let timeout = &timeoutlen
+    else
+      return s:cancel_map()
+    endif
+  endwhile
+endfunction
+
 " Return:
 "   - code
 "   - cursor
 "   - str
-function! s:getchar(str, cursor, words, history)
+function! s:decode_char(c, str, cursor, words, history)
+  let c       = a:c
   let str     = a:str
   let cursor  = a:cursor
   let matches = []
-
-  let c  = getchar()
-  let ch = nr2char(c)
 
   try
     if c == "\<S-Left>"
@@ -273,50 +364,50 @@ function! s:getchar(str, cursor, words, history)
       let begins = len(matchstr(strpart(str, cursor), '^\s*'))
       let pos = match(str, '\s', cursor + begins + 1)
       return [s:CONTINUE, pos == -1 ? len(str) : pos, str]
-    elseif ch == "\<C-C>" || ch == "\<Esc>"
+    elseif c == "\<C-C>" || c == "\<Esc>"
       return [s:EXIT, cursor, str]
-    elseif ch == "\<C-A>" || c == "\<Home>"
+    elseif c == "\<C-A>" || c == "\<Home>"
       let cursor = 0
-    elseif ch == "\<C-E>" || c == "\<End>"
+    elseif c == "\<C-E>" || c == "\<End>"
       let cursor = len(str)
-    elseif ch == "\<Return>"
+    elseif c == "\<Return>"
       return [s:RETURN, cursor, str]
-    elseif ch == "\<C-U>"
+    elseif c == "\<C-U>"
       let s:yanked = strpart(str, 0, cursor)
       let str = strpart(str, cursor)
       let cursor = 0
-    elseif ch == "\<C-W>"
+    elseif c == "\<C-W>"
       let ostr = strpart(str, 0, cursor)
       let prefix = substitute(substitute(strpart(str, 0, cursor), '\s*$', '', ''), '\S*$', '', '')
       let s:yanked = strpart(ostr, len(prefix))
       let str = prefix . strpart(str, cursor)
       let cursor = len(prefix)
-    elseif ch == "\<C-D>" || c == "\<Del>"
+    elseif c == "\<C-D>" || c == "\<Del>"
       let prefix = strpart(str, 0, cursor)
       let suffix = substitute(strpart(str, cursor), '^.', '', '')
       let str = prefix . suffix
-    elseif ch == "\<C-K>"
+    elseif c == "\<C-K>"
       let s:yanked = strpart(str, cursor)
       let str = strpart(str, 0, cursor)
-    elseif ch == "\<C-Y>"
+    elseif c == "\<C-Y>"
       let str = strpart(str, 0, cursor) . s:yanked . strpart(str, cursor)
       let cursor += len(s:yanked)
-    elseif ch == "\<C-H>" || c  == "\<BS>"
+    elseif c == "\<C-H>" || c  == "\<BS>"
       if cursor == 0 && empty(str)
         return [s:EXIT, cursor, str]
       endif
       let prefix = substitute(strpart(str, 0, cursor), '.$', '', '')
       let str = prefix . strpart(str, cursor)
       let cursor = len(prefix)
-    elseif ch == "\<C-B>" || c == "\<Left>"
+    elseif c == "\<C-B>" || c == "\<Left>"
       let cursor = len(substitute(strpart(str, 0, cursor), '.$', '', ''))
-    elseif ch == "\<C-F>" || c == "\<Right>"
+    elseif c == "\<C-F>" || c == "\<Right>"
       let cursor += len(matchstr(strpart(str, cursor), '^.'))
-    elseif ch == "\<C-N>"    || ch == "\<C-P>"      ||
+    elseif c == "\<C-N>"    || c == "\<C-P>"      ||
          \ c  == "\<Up>"     || c  == "\<Down>"     ||
          \ c  == "\<PageUp>" || c  == "\<PageDown>" ||
          \ c  == "\<S-Up>"   || c  == "\<S-Down>"
-      let s:history_idx = (ch == "\<C-N>"    || c == "\<PageDown>" ||
+      let s:history_idx = (c == "\<C-N>"    || c == "\<PageDown>" ||
                           \ c == "\<S-Down>" || c == "\<Down>") ?
             \ min([s:history_idx + 1, len(a:history) - 1]) :
             \ max([s:history_idx - 1, 0])
@@ -324,12 +415,12 @@ function! s:getchar(str, cursor, words, history)
         let line = a:history[s:history_idx]
         return [s:CONTINUE, len(line), line]
       end
-    elseif !empty(a:words) && (ch == "\<Tab>" || c == "\<S-Tab>")
+    elseif !empty(a:words) && (c == "\<Tab>" || c == "\<S-Tab>")
       let before  = strpart(str, 0, cursor)
       let matches = get(s:, 'matches', pseudocl#complete#match(before, a:words))
 
       if !empty(matches)
-        if ch == "\<Tab>"
+        if c == "\<Tab>"
           let matches = extend(copy(matches[1:-1]), matches[0:0])
         else
           let matches = extend(copy(matches[-1:-1]), matches[0:-2])
@@ -338,7 +429,7 @@ function! s:getchar(str, cursor, words, history)
         let str    = item . strpart(str, cursor)
         let cursor = len(item)
       endif
-    elseif ch == "\<C-R>"
+    elseif c == "\<C-R>"
       let reg = nr2char(getchar())
 
       let text = ''
@@ -355,12 +446,12 @@ function! s:getchar(str, cursor, words, history)
         let str = strpart(str, 0, cursor) . text . strpart(str, cursor)
         let cursor += len(text)
       endif
-    elseif ch == "\<C-V>" || ch =~ '[[:print:]]'
-      if ch == "\<C-V>"
-        let ch = nr2char(getchar())
+    elseif c == "\<C-V>" || c =~ '[[:print:]]'
+      if c == "\<C-V>"
+        let c = nr2char(getchar())
       endif
-      let str = strpart(str, 0, cursor) . ch . strpart(str, cursor)
-      let cursor += len(ch)
+      let str = strpart(str, 0, cursor) . c . strpart(str, cursor)
+      let cursor += len(c)
     else
       return [c, cursor, str]
     endif

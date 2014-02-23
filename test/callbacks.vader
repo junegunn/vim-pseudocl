@@ -1,3 +1,5 @@
+Include: _clear.vader
+
 Execute (Setup):
   function! OnChange(...)
     call add(g:changes, a:000)
@@ -21,9 +23,9 @@ After:
   AssertEqual ['ab',  'a',  2], g:changes[1]
   AssertEqual ['abc', 'ab', 3], g:changes[2]
   AssertEqual 3, len(g:unknowns)
-  AssertEqual [char2nr("\<C-X>"), 'ab',    2], g:unknowns[0]
-  AssertEqual [char2nr("\<C-O>"), 'abcd',  4], g:unknowns[1]
-  AssertEqual [char2nr("\<C-Z>"), 'abcde', 5], g:unknowns[2]
+  AssertEqual ["\<C-X>", 'ab',    2], g:unknowns[0]
+  AssertEqual ["\<C-O>", 'abcd',  4], g:unknowns[1]
+  AssertEqual ["\<C-Z>", 'abcde', 5], g:unknowns[2]
 
 Do (Basic):
   :let g:got = pseudocl#start(g:opts)\<cr>
@@ -42,3 +44,4 @@ Execute (Cleanup):
   delfunction OnChange
   delfunction OnUnknownKey
 
+Include: _restore.vader

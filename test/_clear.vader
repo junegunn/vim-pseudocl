@@ -1,0 +1,17 @@
+Execute (Clear cmaps):
+  " Make sure this doesn't break the test
+  if !exists('g:pseudocl')
+    let g:pseudocl = {
+      \ "\<C-a>": maparg("\<C-A>", 'c', 0, 1),
+      \ "\<C-b>": maparg("\<C-B>", 'c', 0, 1),
+      \ "\<C-f>": maparg("\<C-F>", 'c', 0, 1),
+      \ "\<C-d>": maparg("\<C-D>", 'c', 0, 1),
+      \ 'jk': maparg("jk", 'c', 0, 1)
+    \ }
+    silent! cunmap <C-A>
+    silent! cunmap <C-B>
+    silent! cunmap <C-D>
+    silent! cunmap <C-F>
+    silent! cunmap jk
+  endif
+

@@ -302,6 +302,18 @@ function! s:cancel_map()
   return first
 endfunction
 
+if v:version > 703 || v:version == 703 && has('patch32')
+  function! s:cmaparg(combo)
+    return maparg(a:combo, 'c', 0, 1)
+  endfunction
+else
+  " FIXME: Unable to check if it's <expr> mapping
+  function! s:cmaparg(combo)
+    let arg = maparg(a:combo, 'c', 0)
+    return empty(arg) ? {} : { 'rhs': arg, 'expr': 0 }
+  endfunction
+endif
+
 function! s:getchar()
   let timeout = 0
   while 1
@@ -311,7 +323,7 @@ function! s:getchar()
     endif
 
     call add(s:keystrokes, c)
-    let maparg = maparg(join(s:keystrokes, ''), 'c', 0, 1)
+    let maparg = s:cmaparg(join(s:keystrokes, ''))
 
     " FIXME For now, let's just assume that we don't have multiple mappings
     " with the same prefix

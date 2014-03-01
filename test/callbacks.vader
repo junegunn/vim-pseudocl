@@ -7,6 +7,7 @@ Execute (Setup):
 
   function! OnUnknownKey(...)
     call add(g:unknowns, a:000)
+    return a:000
   endfunction
 
   let g:opts = {

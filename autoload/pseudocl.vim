@@ -25,6 +25,7 @@ let s:cpo_save = &cpo
 set cpo&vim
 
 function! pseudocl#nop(...)
+  return a:000
 endfunction
 
 let s:default_opts = {

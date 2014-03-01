@@ -30,6 +30,12 @@ let s:CONTINUE = -3
 let s:UNKNOWN  = -4
 let s:EXIT     = -5
 
+let g:pseudocl#MAP      = s:MAP
+let g:pseudocl#RETURN   = s:RETURN
+let g:pseudocl#CONTINUE = s:CONTINUE
+let g:pseudocl#UNKNOWN  = s:UNKNOWN
+let g:pseudocl#EXIT     = s:EXIT
+
 hi PseudocLCursor term=inverse cterm=inverse gui=inverse
 
 if exists("*strwidth")
@@ -61,10 +67,18 @@ function! pseudocl#render#loop(opts)
     let s:use_maps    = a:opts.map
     call add(history, old)
 
+    let valid_codes = [s:CONTINUE, s:RETURN, s:EXIT]
     while 1
       call a:opts.renderer(pseudocl#get_prompt(), old, a:opts.cursor)
-      let [code, a:opts.cursor, new] =
+      let [code, new, a:opts.cursor] =
             \ s:process_char(old, a:opts.cursor, a:opts.words, history)
+
+      if index(valid_codes, code) < 0
+        let [code, new, a:opts.cursor] = a:opts.on_unknown_key(code, new, a:opts.cursor)
+        if index(valid_codes, code) < 0
+          continue
+        endif
+      endif
 
       if code == s:CONTINUE
         if new != old
@@ -78,8 +92,6 @@ function! pseudocl#render#loop(opts)
       elseif code == s:EXIT
         call a:opts.renderer(pseudocl#get_prompt(), new, -1)
         throw 'exit'
-      else
-        call a:opts.on_unknown_key(code, new, a:opts.cursor)
       endif
     endwhile
   finally
@@ -265,7 +277,7 @@ endfunction
 function! s:process_char(str, cursor, words, history)
   let c = s:getchar()
   if c == s:MAP
-    return [s:MAP, a:cursor, a:str]
+    return [s:MAP, a:str, a:cursor]
   else
     return s:decode_char(c, a:str, a:cursor, a:words, a:history)
   endif
@@ -370,20 +382,20 @@ function! s:decode_char(c, str, cursor, words, history)
       let prefix = substitute(strpart(str, 0, cursor), '\s*$', '', '')
       let pos = match(prefix, '\S*$')
       if pos >= 0
-        return [s:CONTINUE, pos, str]
+        return [s:CONTINUE, str, pos]
       endif
     elseif c == "\<S-Right>"
       let begins = len(matchstr(strpart(str, cursor), '^\s*'))
       let pos = match(str, '\s', cursor + begins + 1)
-      return [s:CONTINUE, pos == -1 ? len(str) : pos, str]
+      return [s:CONTINUE, str, pos == -1 ? len(str) : pos]
     elseif c == "\<C-C>" || c == "\<Esc>"
-      return [s:EXIT, cursor, str]
+      return [s:EXIT, str, cursor]
     elseif c == "\<C-A>" || c == "\<Home>"
       let cursor = 0
     elseif c == "\<C-E>" || c == "\<End>"
       let cursor = len(str)
     elseif c == "\<Return>"
-      return [s:RETURN, cursor, str]
+      return [s:RETURN, str, cursor]
     elseif c == "\<C-U>"
       let s:yanked = strpart(str, 0, cursor)
       let str = strpart(str, cursor)
@@ -406,7 +418,7 @@ function! s:decode_char(c, str, cursor, words, history)
       let cursor += len(s:yanked)
     elseif c == "\<C-H>" || c  == "\<BS>"
       if cursor == 0 && empty(str)
-        return [s:EXIT, cursor, str]
+        return [s:EXIT, str, cursor]
       endif
       let prefix = substitute(strpart(str, 0, cursor), '.$', '', '')
       let str = prefix . strpart(str, cursor)
@@ -425,7 +437,7 @@ function! s:decode_char(c, str, cursor, words, history)
             \ max([s:history_idx - 1, 0])
       if s:history_idx < len(a:history)
         let line = a:history[s:history_idx]
-        return [s:CONTINUE, len(line), line]
+        return [s:CONTINUE, line, len(line)]
       end
     elseif !empty(a:words) && (c == "\<Tab>" || c == "\<S-Tab>")
       let before  = strpart(str, 0, cursor)
@@ -465,13 +477,13 @@ function! s:decode_char(c, str, cursor, words, history)
       let str = strpart(str, 0, cursor) . c . strpart(str, cursor)
       let cursor += len(c)
     else
-      return [c, cursor, str]
+      return [c, str, cursor]
     endif
 
     call remove(a:history, -1)
     call add(a:history, str)
     let s:history_idx = len(a:history) - 1
-    return [s:CONTINUE, cursor, str]
+    return [s:CONTINUE, str, cursor]
   finally
     if empty(matches)
       unlet! s:matches

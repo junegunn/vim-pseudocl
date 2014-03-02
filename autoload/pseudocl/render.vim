@@ -260,9 +260,11 @@ endfunction
 function! s:input(prompt, default)
   try
     call s:show_cursor()
+    redraw
     return input(a:prompt, a:default)
   finally
     call s:hide_cursor()
+    redraw
   endtry
 endfunction
 

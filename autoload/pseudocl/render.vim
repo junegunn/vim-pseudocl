@@ -36,8 +36,6 @@ let g:pseudocl#CONTINUE = s:CONTINUE
 let g:pseudocl#UNKNOWN  = s:UNKNOWN
 let g:pseudocl#EXIT     = s:EXIT
 
-hi PseudocLCursor term=inverse cterm=inverse gui=inverse
-
 if exists("*strwidth")
   function! s:strwidth(str)
     return strwidth(a:str)
@@ -144,6 +142,7 @@ function! s:trim_right(str, margin)
 endfunction
 
 function! s:echo_line(str, cursor, prompt_width)
+  hi PseudoCLCursor term=inverse cterm=inverse gui=inverse
   try
     if a:cursor < 0
       let [str, ellipsis, _] = s:trim_left(s:strtrans(a:str), a:prompt_width + 2)
@@ -220,7 +219,11 @@ function! s:show_cursor()
   endif
 
   if exists('s:hi_cursor')
-    execute s:hi_cursor
+    if s:hi_cursor =~ 'cleared'
+      hi clear Cursor
+    else
+      execute s:hi_cursor
+    endif
   endif
 endfunction
 

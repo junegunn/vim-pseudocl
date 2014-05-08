@@ -122,9 +122,9 @@ Execute:
   AssertEqual "가나다     라마바       라마바       ", g:got
 
 Execute (try-catch block):
-  function! TryPseudoCL()
+  function! TryPseudoCL(...)
     try
-      let g:got = pseudocl#start({})
+      let g:got = pseudocl#start(a:0 == 0 ? {} : a:1)
     catch 'exit'
       let g:got = 'exited'
     endtry
@@ -136,6 +136,17 @@ Do (CTRL-C):
   \<cr>
 Execute:
   AssertEqual 'exited', g:got
+
+Execute (Prepare options dictionary for remap):
+  let g:opt = { 'remap': { "\<C-H>": "\<C-D>", "\<C-D>": "\<C-H>" } }
+
+Do (CTRL-H / CTRL-D swapped):
+  :call TryPseudoCL(g:opt)\<cr>
+  abcde\<c-d>fg\<c-a>\<c-f>\<c-h>
+  \<cr>
+Execute:
+  AssertEqual 'acdfg', g:got
+  unlet g:opt
 
 Do (ESC):
   :call TryPseudoCL()\<cr>

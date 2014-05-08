@@ -62,6 +62,7 @@ function! pseudocl#render#loop(opts)
     let s:history_idx = len(history)
     let s:keystrokes  = []
     let s:prev_time   = 0
+    let s:remap       = a:opts.remap
     let s:use_maps    = a:opts.map
     call add(history, old)
 
@@ -372,6 +373,10 @@ function! s:getchar()
   endwhile
 endfunction
 
+function! s:k(ok)
+  return get(s:remap, a:ok, a:ok)
+endfunction
+
 " Return:
 "   - code
 "   - cursor
@@ -383,73 +388,74 @@ function! s:decode_char(c, str, cursor, words, history)
   let matches = []
 
   try
-    if c == "\<S-Left>"
+    if c == s:k("\<S-Left>")
       let prefix = substitute(strpart(str, 0, cursor), '\s*$', '', '')
       let pos = match(prefix, '\S*$')
       if pos >= 0
         return [s:CONTINUE, str, pos]
       endif
-    elseif c == "\<S-Right>"
+    elseif c == s:k("\<S-Right>")
       let begins = len(matchstr(strpart(str, cursor), '^\s*'))
       let pos = match(str, '\s', cursor + begins + 1)
       return [s:CONTINUE, str, pos == -1 ? len(str) : pos]
-    elseif c == "\<C-C>" || c == "\<Esc>"
+    elseif c == s:k("\<C-C>") || c == s:k("\<Esc>")
       return [s:EXIT, str, cursor]
-    elseif c == "\<C-A>" || c == "\<Home>"
+    elseif c == s:k("\<C-A>") || c == s:k("\<Home>")
       let cursor = 0
-    elseif c == "\<C-E>" || c == "\<End>"
+    elseif c == s:k("\<C-E>") || c == s:k("\<End>")
       let cursor = len(str)
-    elseif c == "\<Return>"
+    elseif c == s:k("\<Return>")
       return [s:RETURN, str, cursor]
-    elseif c == "\<C-U>"
+    elseif c == s:k("\<C-U>")
       let s:yanked = strpart(str, 0, cursor)
       let str = strpart(str, cursor)
       let cursor = 0
-    elseif c == "\<C-W>"
+    elseif c == s:k("\<C-W>")
       let ostr = strpart(str, 0, cursor)
       let prefix = substitute(substitute(strpart(str, 0, cursor), '\s*$', '', ''), '\S*$', '', '')
       let s:yanked = strpart(ostr, len(prefix))
       let str = prefix . strpart(str, cursor)
       let cursor = len(prefix)
-    elseif c == "\<C-D>" || c == "\<Del>"
+    elseif c == s:k("\<C-D>") || c == s:k("\<Del>")
       let prefix = strpart(str, 0, cursor)
       let suffix = substitute(strpart(str, cursor), '^.', '', '')
       let str = prefix . suffix
-    elseif c == "\<C-K>"
+    elseif c == s:k("\<C-K>")
       let s:yanked = strpart(str, cursor)
       let str = strpart(str, 0, cursor)
-    elseif c == "\<C-Y>"
+    elseif c == s:k("\<C-Y>")
       let str = strpart(str, 0, cursor) . s:yanked . strpart(str, cursor)
       let cursor += len(s:yanked)
-    elseif c == "\<C-H>" || c  == "\<BS>"
+    elseif c == s:k("\<C-H>") || c  == s:k("\<BS>")
       if cursor == 0 && empty(str)
         return [s:EXIT, str, cursor]
       endif
       let prefix = substitute(strpart(str, 0, cursor), '.$', '', '')
       let str = prefix . strpart(str, cursor)
       let cursor = len(prefix)
-    elseif c == "\<C-B>" || c == "\<Left>"
+    elseif c == s:k("\<C-B>") || c == s:k("\<Left>")
       let cursor = len(substitute(strpart(str, 0, cursor), '.$', '', ''))
-    elseif c == "\<C-F>" || c == "\<Right>"
+    elseif c == s:k("\<C-F>") || c == s:k("\<Right>")
       let cursor += len(matchstr(strpart(str, cursor), '^.'))
-    elseif c == "\<C-N>"    || c == "\<C-P>"      ||
-         \ c  == "\<Up>"     || c  == "\<Down>"     ||
-         \ c  == "\<PageUp>" || c  == "\<PageDown>" ||
-         \ c  == "\<S-Up>"   || c  == "\<S-Down>"
-      let s:history_idx = (c == "\<C-N>"    || c == "\<PageDown>" ||
-                          \ c == "\<S-Down>" || c == "\<Down>") ?
+    elseif len(a:history) > 1 && (
+         \ c == s:k("\<C-N>")    || c == s:k("\<C-P>")      ||
+         \ c == s:k("\<Up>")     || c == s:k("\<Down>")     ||
+         \ c == s:k("\<PageUp>") || c == s:k("\<PageDown>") ||
+         \ c == s:k("\<S-Up>")   || c == s:k("\<S-Down>"))
+      let s:history_idx = (c == s:k("\<C-N>")    || c == s:k("\<PageDown>") ||
+                         \ c == s:k("\<S-Down>") || c == s:k("\<Down>")) ?
             \ min([s:history_idx + 1, len(a:history) - 1]) :
             \ max([s:history_idx - 1, 0])
       if s:history_idx < len(a:history)
         let line = a:history[s:history_idx]
         return [s:CONTINUE, line, len(line)]
       end
-    elseif !empty(a:words) && (c == "\<Tab>" || c == "\<S-Tab>")
+    elseif !empty(a:words) && (c == s:k("\<Tab>") || c == s:k("\<S-Tab>"))
       let before  = strpart(str, 0, cursor)
       let matches = get(s:, 'matches', pseudocl#complete#match(before, a:words))
 
       if !empty(matches)
-        if c == "\<Tab>"
+        if c == s:k("\<Tab>")
           let matches = extend(copy(matches[1:-1]), matches[0:0])
         else
           let matches = extend(copy(matches[-1:-1]), matches[0:-2])
@@ -458,13 +464,13 @@ function! s:decode_char(c, str, cursor, words, history)
         let str    = item . strpart(str, cursor)
         let cursor = len(item)
       endif
-    elseif c == "\<C-R>"
+    elseif c == s:k("\<C-R>")
       let reg = nr2char(getchar())
 
       let text = ''
-      if reg == "\<C-W>"
+      if reg == s:k("\<C-W>")
         let text = expand('<cword>')
-      elseif reg == "\<C-A>"
+      elseif reg == s:k("\<C-A>")
         let text = expand('<cWORD>')
       elseif reg == "="
         let text = eval(s:input('=', ''))
@@ -475,8 +481,8 @@ function! s:decode_char(c, str, cursor, words, history)
         let str = strpart(str, 0, cursor) . text . strpart(str, cursor)
         let cursor += len(text)
       endif
-    elseif c == "\<C-V>" || c =~ '[[:print:]]'
-      if c == "\<C-V>"
+    elseif c == s:k("\<C-V>") || c =~ '[[:print:]]'
+      if c == s:k("\<C-V>")
         let c = nr2char(getchar())
       endif
       let str = strpart(str, 0, cursor) . c . strpart(str, cursor)

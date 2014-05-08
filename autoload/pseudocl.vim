@@ -34,6 +34,7 @@ let s:default_opts = {
   \ 'words':          [],
   \ 'input':          '',
   \ 'highlight':      'None',
+  \ 'remap':          {},
   \ 'map':            1,
   \ 'renderer':       function('pseudocl#render#echo'),
   \ 'on_change':      function('pseudocl#nop'),

@@ -102,8 +102,8 @@ endfunction
 function! pseudocl#render#echo(prompt, line, cursor)
   if getchar(1) == 0
     call pseudocl#render#clear()
-    let plen = s:echo_prompt(a:prompt)
-    call s:echo_line(a:line, a:cursor, plen)
+    let plen = pseudocl#render#echo_prompt(a:prompt)
+    call pseudocl#render#echo_line(a:line, a:cursor, plen)
   endif
 endfunction
 
@@ -141,7 +141,7 @@ function! s:trim_right(str, margin)
   return s:trim(a:str, a:margin, 0)
 endfunction
 
-function! s:echo_line(str, cursor, prompt_width)
+function! pseudocl#render#echo_line(str, cursor, prompt_width)
   hi PseudoCLCursor term=inverse cterm=inverse gui=inverse
   try
     if a:cursor < 0
@@ -227,7 +227,7 @@ function! s:show_cursor()
   endif
 endfunction
 
-function! s:echo_prompt(prompt)
+function! pseudocl#render#echo_prompt(prompt)
   let type = type(a:prompt)
   if type == 1
     let len = s:prompt_in_str(a:prompt)

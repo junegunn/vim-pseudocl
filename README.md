@@ -36,6 +36,24 @@ function.
 | history        | List    | `[]`                   | Command-line history                                        |
 | words          | List    | `[]`                   | Words for tab completion                                    |
 
+API
+---
+
+### Main
+
+- `pseudocl#start()`
+
+### Render
+
+- `pseudocl#render#echo()`
+    - `pseudocl#render#echo_prompt()`
+    - `pseudocl#render#echo_line()`
+- `pseudocl#render#clear()`
+
+### Complete
+
+- `pseudocl#complete#extract_words()`
+
 License
 -------
 

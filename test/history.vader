@@ -1,5 +1,21 @@
 Include: _clear.vader
 
+Execute:
+  let g:unknown_key_cnt = 0
+  function! UnknownKey(...)
+    let g:unknown_key_cnt += 1
+    return a:000
+  endfunction
+
+Do (no history - C-P):
+  :let g:got = pseudocl#start({'on_unknown_key': function('UnknownKey')})\<cr>
+  \<c-p>\<cr>
+Execute:
+  AssertEqual '', g:got
+  AssertEqual 1, g:unknown_key_cnt
+  unlet g:unknown_key_cnt
+  delfunction UnknownKey
+
 Execute (Setup):
   let g:opts = {'history': ['apple', 'applejuice', 'appleinc']}
 

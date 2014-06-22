@@ -281,7 +281,11 @@ function! s:evaluate_keymap(arg)
 endfunction
 
 function! s:process_char(str, cursor, words, history)
-  let c = s:getchar()
+  try
+    let c = s:getchar()
+  catch /^Vim:Interrupt$/
+    let c = "\<C-c>"
+  endtry
   if c == s:MAP
     return [s:MAP, a:str, a:cursor]
   else

@@ -6,6 +6,7 @@ Execute (Setup):
   cnoremap xyy XYY
   cnoremap xxx <cr>
   cnoremap <expr> 123 1 + 2 + 3
+  cnoremap jk <Esc>
   nnoremap :: :let g:got = pseudocl#start({})<cr>
   nnoremap ::: :let g:got = pseudocl#start({'map': 0})<cr>
 
@@ -22,6 +23,11 @@ Execute (TODO Feedkeys doesn't work correctly in macros):
   AssertEqual 'xyx', g:got
   normal ::123xxx
   AssertEqual '6', g:got
+  try
+    normal ::123jk
+    Assert 0, 'Should not reach here'
+  catch 'exit'
+  endtry
 
   execute "normal :::abcxyz\<cr>"
   AssertEqual 'abcxyz', g:got
@@ -32,6 +38,7 @@ Execute (Cleanup):
   cunmap xyy
   cunmap xxx
   cunmap 123
+  cunmap jk
   nunmap ::
   nunmap :::
 

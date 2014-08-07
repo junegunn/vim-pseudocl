@@ -273,7 +273,7 @@ function! s:input(prompt, default)
 endfunction
 
 function! s:evaluate_keyseq(seq)
-  return substitute(a:seq, '<[^\s>]\+>', '\=eval("\"\\".submatch(0)."\"")', 'g')
+  return substitute(a:seq, '<[^> ]\+>', '\=eval("\"\\".submatch(0)."\"")', 'g')
 endfunction
 
 function! s:evaluate_keymap(arg)

@@ -169,7 +169,32 @@ Do (Backspace to exit):
 Execute:
   AssertEqual 'exited', g:got
 
+Do (Highlight for Cursor defined):
+  :hi Cursor ctermfg=red ctermbg=blue\<cr>
+  :call TryPseudoCL()\<cr>
+  abcde\<cr>
+Execute:
+  AssertEqual 'abcde', g:got
+  redir => out
+  silent hi Cursor
+  redir END
+  Log out
+
+Do (Cursor linked to other highlight group):
+  :hi clear Cursor\<cr>
+  :hi link Cursor TabLineFill\<cr>
+  :call TryPseudoCL()\<cr>
+  abcde\<cr>
+Execute:
+  AssertEqual 'abcde', g:got
+  redir => out
+  silent hi Cursor
+  redir END
+  Log out
+  AssertEqual 'TabLineFill', matchstr(out, 'links to \zs.*')
+
 Execute (Cleanup):
+  unlet out
   delfunction TryPseudoCL
 
 Include: _restore.vader

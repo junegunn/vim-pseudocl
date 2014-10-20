@@ -208,7 +208,10 @@ function! s:hide_cursor()
     redir => hi_cursor
     silent hi Cursor
     redir END
-    let s:hi_cursor = 'highlight ' . substitute(hi_cursor, 'xxx\|\n', '', 'g')
+    let link = matchstr(hi_cursor, 'links to \zs.*')
+    let s:hi_cursor = empty(link) ?
+          \ ('highlight ' . substitute(hi_cursor, 'xxx\|\n', '', 'g'))
+          \ : ('highlight link Cursor '.link)
     hi Cursor guibg=bg
   endif
 endfunction
@@ -223,6 +226,7 @@ function! s:show_cursor()
     if s:hi_cursor =~ 'cleared'
       hi clear Cursor
     else
+      hi clear Cursor
       execute s:hi_cursor
     endif
   endif

@@ -223,10 +223,8 @@ function! s:show_cursor()
   endif
 
   if exists('s:hi_cursor')
-    if s:hi_cursor =~ 'cleared'
-      hi clear Cursor
-    else
-      hi clear Cursor
+    hi clear Cursor
+    if s:hi_cursor !~ 'cleared'
       execute s:hi_cursor
     endif
   endif

@@ -55,5 +55,13 @@ function! pseudocl#set_prompt(new_prompt)
   let s:current.prompt = a:new_prompt
 endfunction
 
+if !s:default_opts.renderer
+  function! pseudocl#default_renderer(...)
+    return call('pseudocl#render#echo', a:000)
+  endfunction
+
+  let s:default_opts.renderer = function('pseudocl#default_renderer')
+endif
+
 let &cpo = s:cpo_save
 unlet s:cpo_save

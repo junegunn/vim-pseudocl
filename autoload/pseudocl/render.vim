@@ -487,7 +487,7 @@ function! s:decode_char(c, str, cursor, words, history)
         let str = strpart(str, 0, cursor) . text . strpart(str, cursor)
         let cursor += len(text)
       endif
-    elseif c == s:k("\<C-V>") || c =~ '[[:print:]]'
+    elseif c == s:k("\<C-V>") || c =~ '[[:print:]]' && c[0] !~ nr2char(128)
       if c == s:k("\<C-V>")
         let c = nr2char(getchar())
       endif

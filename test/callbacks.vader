@@ -23,6 +23,7 @@ After:
   AssertEqual ['a',   '',   1], g:changes[0]
   AssertEqual ['ab',  'a',  2], g:changes[1]
   AssertEqual ['abc', 'ab', 3], g:changes[2]
+  Log g:unknowns
   AssertEqual 3, len(g:unknowns)
   AssertEqual ["\<C-X>", 'ab',    2], g:unknowns[0]
   AssertEqual ["\<C-O>", 'abcd',  4], g:unknowns[1]

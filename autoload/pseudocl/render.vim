@@ -49,6 +49,7 @@ endif
 function! pseudocl#render#loop(opts)
   let s:highlight = a:opts.highlight
   let s:yanked = ''
+  let s:noremap = 0
   let xy = [&ruler, &showcmd]
   try
     set noruler noshowcmd
@@ -66,7 +67,7 @@ function! pseudocl#render#loop(opts)
     let s:use_maps    = a:opts.map
     call add(history, old)
 
-    let valid_codes = [s:CONTINUE, s:RETURN, s:EXIT]
+    let valid_codes = [s:CONTINUE, s:RETURN, s:EXIT, s:MAP]
     while 1
       call a:opts.renderer(pseudocl#get_prompt(), old, a:opts.cursor)
       let [code, new, a:opts.cursor] =
@@ -79,7 +80,9 @@ function! pseudocl#render#loop(opts)
         endif
       endif
 
-      if code == s:CONTINUE
+      if code == s:MAP
+        continue
+      elseif code == s:CONTINUE
         if new != old
           call a:opts.on_change(new, old, a:opts.cursor)
         endif
@@ -279,7 +282,11 @@ function! s:evaluate_keyseq(seq)
 endfunction
 
 function! s:evaluate_keymap(arg)
-  return s:evaluate_keyseq(a:arg.expr ? eval(a:arg.rhs) : a:arg.rhs)
+  if a:arg.expr
+    return eval(s:evaluate_keyseq(substitute(a:arg.rhs, '\c<sid>', '<snr>'.a:arg.sid.'_', '')))
+  else
+    return s:evaluate_keyseq(a:arg.rhs)
+  endif
 endfunction
 
 function! s:process_char(str, cursor, words, history)
@@ -328,13 +335,20 @@ endfunction
 
 if v:version > 703 || v:version == 703 && has('patch32')
   function! s:cmaparg(combo)
-    return maparg(a:combo, 'c', 0, 1)
+    let arg = maparg(a:combo, 'c', 0, 1)
+    if empty(arg)
+      let arg = maparg(a:combo, 'c', 1, 1)
+    endif
+    return arg
   endfunction
 else
   " FIXME: Unable to check if it's <expr> mapping
   function! s:cmaparg(combo)
     let arg = maparg(a:combo, 'c', 0)
-    return empty(arg) ? {} : { 'rhs': arg, 'expr': 0 }
+    if empty(arg)
+      let arg = maparg(a:combo, 'c', 1)
+    endif
+    return empty(arg) ? {} : { 'rhs': arg, 'expr': 0, 'noremap': 1 }
   endfunction
 endif
 
@@ -342,14 +356,15 @@ function! s:getchar()
   let timeout = 0
   while 1
     let c = s:timed_getchar(timeout)
-    if !s:use_maps
+    if !s:use_maps || s:noremap > 0
+      let s:noremap = max([0, s:noremap - 1])
       return c
     endif
 
     call add(s:keystrokes, c)
     let maparg = s:cmaparg(join(s:keystrokes, ''))
 
-    " FIXME For now, let's just assume that we don't have multiple mappings
+    " FIXME: For now, let's just assume that we don't have multiple mappings
     " with the same prefix
     " e.g.
     "      cnoremap x X
@@ -364,6 +379,11 @@ function! s:getchar()
     if !empty(maparg)
       let s:keystrokes = []
       let s:prev_time = 0
+
+      let keys = s:evaluate_keymap(maparg)
+      if maparg.noremap || s:evaluate_keyseq(maparg.lhs) == keys
+        let s:noremap = len(keys)
+      endif
       call feedkeys(s:evaluate_keymap(maparg))
       return s:MAP
     elseif !empty(mapcheck(join(s:keystrokes, ''), 'c'))

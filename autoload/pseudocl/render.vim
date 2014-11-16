@@ -333,28 +333,31 @@ function! s:cancel_map()
   return first
 endfunction
 
-if v:version > 703 || v:version == 703 && has('patch32')
+function! s:for_args(func, first, arglists)
+  for arglist in a:arglists
+    let ret = call(a:func, insert(arglist, a:first, 0))
+    if !empty(ret)
+      break
+    endif
+  endfor
+  return ret
+endfunction
+
+if 0 " v:version > 703 || v:version == 703 && has('patch32')
   function! s:cmaparg(combo)
-    for arglist in map([['c', 0, 1], ['c', 1, 1], ['l', 0, 1]], 'insert(v:val, a:combo, 0)')
-      let arg = call('maparg', arglist)
-      if !empty(arg)
-        break
-      endif
-    endfor
-    return arg
+    return s:for_args('maparg', a:combo, [['c', 0, 1], ['c', 1, 1], ['l', 0, 1]])
   endfunction
 else
   " FIXME: Unable to check if it's <expr> mapping
   function! s:cmaparg(combo)
-    for arglist in map([['c', 0], ['c', 1], ['l', 0]], 'insert(v:val, a:combo, 0)')
-      let arg = call('maparg', arglist)
-      if !empty(arg)
-        break
-      endif
-    endfor
+    let arg = s:for_args('maparg', a:combo, [['c', 0], ['c', 1], ['l', 0]])
     return empty(arg) ? {} : { 'rhs': arg, 'expr': 0, 'noremap': 1 }
   endfunction
 endif
+
+function! s:mapcheck(str)
+  return s:for_args('mapcheck', a:str, [['c', 0], ['c', 1], ['l', 0]])
+endfunction
 
 function! s:getchar()
   let timeout = 0
@@ -390,7 +393,7 @@ function! s:getchar()
       endif
       call feedkeys(keys)
       return s:MAP
-    elseif !empty(mapcheck(join(s:keystrokes, ''), 'c'))
+    elseif !empty(s:mapcheck(join(s:keystrokes, '')))
       if s:prev_time == 0
         let s:prev_time = s:gettime()
       elseif s:gettime() - s:prev_time > timeout

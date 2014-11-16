@@ -335,19 +335,23 @@ endfunction
 
 if v:version > 703 || v:version == 703 && has('patch32')
   function! s:cmaparg(combo)
-    let arg = maparg(a:combo, 'c', 0, 1)
-    if empty(arg)
-      let arg = maparg(a:combo, 'c', 1, 1)
-    endif
+    for arglist in map([['c', 0, 1], ['c', 1, 1], ['l', 0, 1]], 'insert(v:val, a:combo, 0)')
+      let arg = call('maparg', arglist)
+      if !empty(arg)
+        break
+      endif
+    endfor
     return arg
   endfunction
 else
   " FIXME: Unable to check if it's <expr> mapping
   function! s:cmaparg(combo)
-    let arg = maparg(a:combo, 'c', 0)
-    if empty(arg)
-      let arg = maparg(a:combo, 'c', 1)
-    endif
+    for arglist in map([['c', 0], ['c', 1], ['l', 0]], 'insert(v:val, a:combo, 0)')
+      let arg = call('maparg', arglist)
+      if !empty(arg)
+        break
+      endif
+    endfor
     return empty(arg) ? {} : { 'rhs': arg, 'expr': 0, 'noremap': 1 }
   endfunction
 endif
@@ -357,7 +361,7 @@ function! s:getchar()
   while 1
     let c = s:timed_getchar(timeout)
     if !s:use_maps || s:noremap > 0
-      let s:noremap = max([0, s:noremap - 1])
+      let s:noremap = max([0, s:noremap - len(c)])
       return c
     endif
 

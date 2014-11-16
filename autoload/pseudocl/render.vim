@@ -343,7 +343,7 @@ function! s:for_args(func, first, arglists)
   return ret
 endfunction
 
-if 0 " v:version > 703 || v:version == 703 && has('patch32')
+if v:version > 703 || v:version == 703 && has('patch32')
   function! s:cmaparg(combo)
     return s:for_args('maparg', a:combo, [['c', 0, 1], ['c', 1, 1], ['l', 0, 1]])
   endfunction

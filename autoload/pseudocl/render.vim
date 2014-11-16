@@ -385,10 +385,10 @@ function! s:getchar()
       let s:prev_time = 0
 
       let keys = s:evaluate_keymap(maparg)
-      if maparg.noremap || s:evaluate_keyseq(maparg.lhs) == keys
+      if maparg.noremap || stridx(keys, s:evaluate_keyseq(maparg.lhs)) == 0
         let s:noremap = len(keys)
       endif
-      call feedkeys(s:evaluate_keymap(maparg))
+      call feedkeys(keys)
       return s:MAP
     elseif !empty(mapcheck(join(s:keystrokes, ''), 'c'))
       if s:prev_time == 0

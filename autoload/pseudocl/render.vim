@@ -351,7 +351,8 @@ else
   " FIXME: Unable to check if it's <expr> mapping
   function! s:cmaparg(combo)
     let arg = s:for_args('maparg', a:combo, [['c', 0], ['c', 1], ['l', 0]])
-    return empty(arg) ? {} : { 'rhs': arg, 'expr': 0, 'noremap': 1 }
+    let dict = { 'rhs': arg, 'expr': 0, 'noremap': 1 }
+    return empty(arg) ? {} : dict
   endfunction
 endif
 

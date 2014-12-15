@@ -327,7 +327,7 @@ endfunction
 
 function! s:cancel_map()
   let first = remove(s:keystrokes, 0)
-  call feedkeys(join(s:keystrokes, ''))
+  call feedkeys(substitute(join(s:keystrokes, ''), "\n", "\r", 'g'))
   let s:prev_time = 0
   let s:keystrokes = []
   return first

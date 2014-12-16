@@ -104,10 +104,11 @@ function! pseudocl#render#loop(opts)
 endfunction
 
 function! pseudocl#render#echo(prompt, line, cursor)
-  if getchar(1) == 0
+  if exists('s:force_echo') || getchar(1) == 0
     call pseudocl#render#clear()
     let plen = pseudocl#render#echo_prompt(a:prompt)
     call pseudocl#render#echo_line(a:line, a:cursor, plen)
+    unlet! s:force_echo
   endif
 endfunction
 
@@ -330,6 +331,7 @@ function! s:cancel_map()
   call feedkeys(substitute(join(s:keystrokes, ''), "\n", "\r", 'g'))
   let s:prev_time = 0
   let s:keystrokes = []
+  let s:force_echo = 1
   return first
 endfunction
 

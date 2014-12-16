@@ -346,20 +346,23 @@ function! s:for_args(func, first, arglists)
 endfunction
 
 if v:version > 703 || v:version == 703 && has('patch32')
-  function! s:cmaparg(combo)
-    return s:for_args('maparg', a:combo, [['c', 0, 1], ['c', 1, 1], ['l', 0, 1]])
+  function! s:cmaparg(combo, opts)
+    for opt in a:opts
+      call add(opt, 1)
+    endfor
+    return s:for_args('maparg', a:combo, a:opts)
   endfunction
 else
   " FIXME: Unable to check if it's <expr> mapping
-  function! s:cmaparg(combo)
-    let arg = s:for_args('maparg', a:combo, [['c', 0], ['c', 1], ['l', 0]])
+  function! s:cmaparg(combo, opts)
+    let arg = s:for_args('maparg', a:combo, a:opts)
     let dict = { 'rhs': arg, 'expr': 0, 'noremap': 1 }
     return empty(arg) ? {} : dict
   endfunction
 endif
 
 function! s:mapcheck(str)
-  return s:for_args('mapcheck', a:str, [['c', 0], ['c', 1], ['l', 0]])
+  return s:for_args('mapcheck', a:str, [['c', 0], ['l', 0]])
 endfunction
 
 function! s:getchar()
@@ -372,7 +375,7 @@ function! s:getchar()
     endif
 
     call add(s:keystrokes, c)
-    let maparg = s:cmaparg(join(s:keystrokes, ''))
+    let maparg = s:cmaparg(join(s:keystrokes, ''), [['c', 0], ['l', 0]])
 
     " FIXME: For now, let's just assume that we don't have multiple mappings
     " with the same prefix

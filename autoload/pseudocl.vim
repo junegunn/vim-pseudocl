@@ -24,8 +24,15 @@
 let s:cpo_save = &cpo
 set cpo&vim
 
+let g:pseudocl#MAP      = -1
+let g:pseudocl#RETURN   = -2
+let g:pseudocl#CONTINUE = -3
+let g:pseudocl#UNKNOWN  = -4
+let g:pseudocl#EXIT     = -5
+let g:pseudocl#CTRL_F   = -6
+
 function! pseudocl#nop(...)
-  return a:000
+  return extend([g:pseudocl#CONTINUE], a:000[1:])
 endfunction
 
 let s:default_opts = {
@@ -38,6 +45,7 @@ let s:default_opts = {
   \ 'map':            1,
   \ 'renderer':       function('pseudocl#render#echo'),
   \ 'on_change':      function('pseudocl#nop'),
+  \ 'on_event':       function('pseudocl#nop'),
   \ 'on_unknown_key': function('pseudocl#nop')
   \ }
 

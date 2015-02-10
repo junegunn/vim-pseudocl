@@ -4,7 +4,7 @@ Execute:
   let g:unknown_key_cnt = 0
   function! UnknownKey(...)
     let g:unknown_key_cnt += 1
-    return a:000
+    return extend([g:pseudocl#CONTINUE], a:000[1:])
   endfunction
 
 Do (no history - C-P):

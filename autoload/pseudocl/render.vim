@@ -38,9 +38,9 @@ function! pseudocl#render#loop(opts)
   let s:highlight = a:opts.highlight
   let s:yanked = ''
   let s:noremap = 0
-  let xy = [&ruler, &showcmd]
+  let xyz = [&ruler, &showcmd, &mouse]
   try
-    set noruler noshowcmd
+    set noruler noshowcmd mouse=
     call s:hide_cursor()
     let shortmess = &shortmess
     set shortmess+=T
@@ -90,7 +90,7 @@ function! pseudocl#render#loop(opts)
   finally
     call s:show_cursor()
     let &shortmess = shortmess
-    let [&ruler, &showcmd] = xy
+    let [&ruler, &showcmd, &mouse] = xyz
   endtry
 endfunction
 

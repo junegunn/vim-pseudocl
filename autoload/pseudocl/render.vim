@@ -201,7 +201,7 @@ function! s:hide_cursor()
 
   if hlID('Cursor') != 0
     redir => hi_cursor
-    silent hi Cursor
+    silent 0verb hi Cursor
     redir END
     let link = matchstr(hi_cursor, 'links to \zs.*')
     let s:hi_cursor = empty(link) ?
